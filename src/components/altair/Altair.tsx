@@ -44,25 +44,32 @@ function AltairComponent() {
   const { client, setConfig, setModel } = useLiveAPIContext();
 
   useEffect(() => {
-    setModel("models/gemini-2.0-flash-exp");
+    setModel("models/gemini-2.5-flash-native-audio-latest");
     setConfig({
       responseModalities: [Modality.AUDIO],
+
       speechConfig: {
         voiceConfig: { prebuiltVoiceConfig: { voiceName: "Aoede" } },
       },
+      inputAudioTranscription: {
+        enabled: true,
+      },
       systemInstruction: {
+
+
         parts: [
           {
-            text: 'You are my helpful assistant. Any time I ask you for a graph call the "render_altair" function I have provided you. Dont ask for additional information just make your best judgement.',
+            text: 'Bạn là một trợ lý ảo đa ngôn ngữ hữu ích. Hãy trả lời bằng ngôn ngữ mà người dùng đang sử dụng (Tiếng Việt hoặc Tiếng Anh). Nếu người dùng yêu cầu vẽ biểu đồ, hãy gọi hàm "render_altair". QUAN TRỌNG: Không được sử dụng bất kỳ ký tự định dạng markdown nào trong câu trả lời, bao gồm dấu hoa thị (*), dấu nháy đơn (\'), dấu nháy kép ("), dấu gạch dưới (_), dấu thăng (#), dấu backtick (`). Hãy viết văn bản thuần túy, tự nhiên, không có ký tự đặc biệt.',
           },
+
         ],
       },
       tools: [
-        // there is a free-tier quota for search
         { googleSearch: {} },
         { functionDeclarations: [declaration] },
       ],
     });
+
   }, [setConfig, setModel]);
 
   useEffect(() => {

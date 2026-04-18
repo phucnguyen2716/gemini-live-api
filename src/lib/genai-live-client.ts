@@ -56,13 +56,16 @@ export interface LiveClientEventTypes {
   setupcomplete: () => void;
   // Emitted when a tool call is received
   toolcall: (toolCall: LiveServerToolCall) => void;
-  // Emitted when a tool call is cancelled
+  // Emitted when its tool call is cancelled
   toolcallcancellation: (
     toolcallCancellation: LiveServerToolCallCancellation
   ) => void;
   // Emitted when the current turn is complete
   turncomplete: () => void;
+  // Emitted when transcription is received
+  inputaudiotranscription: (data: { transcript: string; isFinal: boolean }) => void;
 }
+
 
 /**
  * A event-emitting class that manages the connection to the websocket and emits
@@ -235,9 +238,13 @@ export class GenAILiveClient extends EventEmitter<LiveClientEventTypes> {
         this.emit("content", content);
         this.log(`server.content`, message);
       }
+    } else if ((message as any).inputAudioTranscription) {
+      this.emit("inputaudiotranscription", (message as any).inputAudioTranscription);
+      this.log(`server.inputAudioTranscription`, (message as any).inputAudioTranscription);
     } else {
       console.log("received unmatched message", message);
     }
+
   }
 
   /**

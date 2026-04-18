@@ -36,6 +36,19 @@ import {
 
 const formatTime = (d: Date) => d.toLocaleTimeString().slice(0, -3);
 
+// Strip common markdown formatting characters from text
+const stripMarkdown = (text: string): string => {
+  return text
+    .replace(/\*\*([^*]+)\*\*/g, '$1')  // **bold**
+    .replace(/\*([^*]+)\*/g, '$1')       // *italic*
+    .replace(/__([^_]+)__/g, '$1')       // __bold__
+    .replace(/_([^_]+)_/g, '$1')         // _italic_
+    .replace(/`([^`]+)`/g, '$1')         // `code`
+    .replace(/#{1,6}\s/g, '')            // # headers
+    .replace(/\*+/g, '')                 // leftover *
+    .replace(/`+/g, '');                 // leftover `
+};
+
 const LogEntry = memo(
   ({
     log,
@@ -91,7 +104,7 @@ function tryParseCodeExecutionResult(output: string) {
 
 const RenderPart = memo(({ part }: { part: Part }) => {
   if (part.text && part.text.length) {
-    return <p className="part part-text">{part.text}</p>;
+    return <p className="part part-text">{stripMarkdown(part.text)}</p>;
   }
   if (part.executableCode) {
     return (
@@ -131,7 +144,6 @@ const ClientContentLog = memo(({ message }: Message) => {
   const textParts = turns.filter((part) => !(part.text && part.text === "\n"));
   return (
     <div className="rich-log client-content user">
-      <h4 className="roler-user">User</h4>
       <div key={`message-turn`}>
         {textParts.map((part, j) => (
           <RenderPart part={part} key={`message-part-${j}`} />
@@ -197,7 +209,6 @@ const ModelTurnLog = ({ message }: Message): JSX.Element => {
 
   return (
     <div className="rich-log model-turn model">
-      <h4 className="role-model">Model</h4>
       {parts
         ?.filter((part) => !(part.text && part.text === "\n"))
         .map((part, j) => (
@@ -257,8 +268,16 @@ const component = (log: StreamingLog) => {
       return ModelTurnLog;
     }
   }
+  if (typeof log.message === "object" && "transcript" in log.message) {
+    return (msg: Message) => (
+      <div className="rich-log transcript user">
+        <p>{(msg.message as any).transcript}</p>
+      </div>
+    );
+  }
   return AnyMessage;
 };
+
 
 export default function Logger({ filter = "none" }: LoggerProps) {
   const { logs } = useLoggerStore();
